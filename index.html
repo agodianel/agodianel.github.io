@@ -444,6 +444,29 @@
         }
     </style>
 </head>
+
+    <!-- 🔐 Password check goes here, before everything else -->
+<script>
+async function sha256(str) {
+  const buf = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buf);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+const correctHash = "c56633c11d7be2688257c0281b45dbeef3db416094f1b1a7fa42502dc44fd36a";
+
+async function checkPassword() {
+  const input = prompt("Enter password:");
+  const inputHash = await sha256(input);
+
+  if (inputHash !== correctHash) {
+    document.body.innerHTML = "Access denied";
+  }
+}
+
+checkPassword();
+</script>
 <body>
     <div class="presentation-container">
         <div class="slide-container">
