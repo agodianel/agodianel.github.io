@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEAF: Real-Time Vital Signs + UWB Positioning - Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a3d5c;
+            --accent-color: #00a8a8;
+            --text-color: #333333;
+            --bg-color: #ffffff;
+            --light-gray: #f5f5f5;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #000;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            padding: 60px 80px;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(26, 61, 92, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .nav-button:hover {
+            background: #008888;
+        }
+
+        .nav-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* Slide 1 - Title Slide */
+        .title-slide {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 20px,
+                rgba(255, 255, 255, 0.03) 20px,
+                rgba(255, 255, 255, 0.03) 40px
+            );
+            opacity: 0.5;
+        }
+
+        .title-slide .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .title-slide .subtitle {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 40px;
+        }
+
+        .title-slide .date {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .title-slide .contact {
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        /* Standard slide styling */
+        h2 {
+            font-size: 42px;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 700;
+            border-bottom: 4px solid var(--accent-color);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        h3 {
+            font-size: 28px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        h4 {
+            font-size: 22px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .content-grid {
+            display: grid;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .two-column {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .three-column {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .bullet-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .bullet-list li {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            padding-left: 35px;
+            position: relative;
+        }
+
+        .bullet-list li::before {
+            content: '▸';
+            color: var(--accent-color);
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        .card {
+            background: var(--light-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h4 {
+            margin-bottom: 15px;
+        }
+
+        .highlight-box {
+            background: var(--accent-color);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            font-size: 18px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 168, 168, 0.3);
+        }
+
+        .tier-box {
+            background: white;
+            border: 3px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tier-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .tier-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .tier-description {
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .scenario-card {
+            background: white;
+            border-left: 6px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .scenario-card.severity-high {
+            border-left-color: #e53e3e;
+        }
+
+        .scenario-card.severity-medium {
+            border-left-color: #ffa500;
+        }
+
+        .scenario-card.severity-low {
+            border-left-color: #38a169;
+        }
+
+        .scenario-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .scenario-details {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .evidence-box {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8f4f8 100%);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .evidence-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .evidence-stat {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+        }
+
+        .impact-section {
+            background: var(--light-gray);
+            border-top: 5px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .impact-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .next-steps {
+            background: white;
+            border: 3px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .step-item {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 15px 0;
+            padding-left: 35px;
+            position: relative;
+        }
+
+        .step-item::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 24px;
+        }
+
+        .contact-box {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-top: 40px;
+        }
+
+        .contact-box a {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 600;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .closing-slide {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+
+        .closing-slide h1 {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 30px;
+        }
+
+        .closing-slide .subtext {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 50px;
+        }
+
+        .closing-slide .contact {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .banner {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .checkmark {
+            color: #38a169;
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        @media print {
+            .navigation {
+                display: none;
+            }
+            .slide {
+                page-break-after: always;
+                position: relative;
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <div class="slide-container">
+            <!-- Slide 1: Title Slide -->
+            <div class="slide title-slide active">
+                <div class="content">
+                    <h1>LEAF: Real-Time Vital Signs + UWB Positioning</h1>
+                    <div class="subtitle">Construction Worker Safety | Horizon Europe RIA Proposal</div>
+                    <div class="date">November 2025</div>
+                    <div class="contact">tech@callisia.health | www.callisia.health</div>
+                </div>
+            </div>
+
+            <!-- Slide 2: The Challenge -->
+            <div class="slide">
+                <h2>Construction Worker Safety Crisis</h2>
+                <ul class="bullet-list">
+                    <li><strong>50,000+ serious injuries annually</strong> (EU, 4.2M workforce)</li>
+                    <li><strong>3,000+ fatalities per year</strong> (1 death per 1,700 workers)</li>
+                    <li><strong>35× higher heat-related mortality</strong> vs other industries</li>
+                    <li><strong>€75,000-150,000 average cost</strong> per serious incident</li>
+                    <li><strong>2-5 minute average emergency response delay</strong></li>
+                </ul>
+                <h3>Why Current Solutions Fail</h3>
+                <ul class="bullet-list">
+                    <li>Fragmented systems (multiple separate devices)</li>
+                    <li>Reactive only (no prevention capability)</li>
+                    <li>Slow emergency response (manual detection)</li>
+                    <li>Worker reluctance to wear multiple devices</li>
+                </ul>
+            </div>
+
+            <!-- Slide 3: Solution Overview -->
+            <div class="slide">
+                <h2>Solution Overview</h2>
+                <div class="content-grid two-column">
+                    <div>
+                        <div class="tier-box">
+                            <div class="tier-icon">☁️</div>
+                            <div class="tier-title">CLOUD TIER</div>
+                            <div class="tier-description">ML Models, Alerts, Compliance<br>(2-5s latency)</div>
+                        </div>
+                        <div class="tier-box">
+                            <div class="tier-icon">⚙️</div>
+                            <div class="tier-title">EDGE TIER</div>
+                            <div class="tier-description">On-Site Processing<br>(&lt;500ms latency)</div>
+                        </div>
+                        <div class="tier-box">
+                            <div class="tier-icon">⌚</div>
+                            <div class="tier-title">WEARABLE TIER</div>
+                            <div class="tier-description">ECG/PPG, Temperature, UWB</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>KEY INNOVATIONS</h3>
+                        <ul class="bullet-list">
+                            <li><span class="checkmark">✓</span> Vital Signs: ECG, PPG, Core Temp, RR, SpO2</li>
+                            <li><span class="checkmark">✓</span> Positioning: UWB ±10-15cm LOS; ±30-50cm NLOS</li>
+                            <li><span class="checkmark">✓</span> Intelligence: ML fatigue, heat stress, fall detection</li>
+                            <li><span class="checkmark">✓</span> Response: &lt;500ms emergency alert latency</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <strong>EXPECTED OUTCOMES:</strong><br>
+                            • 30% reduction in occupational incidents<br>
+                            • 93.5% fatigue detection accuracy<br>
+                            • &lt;1 second fall detection &amp; emergency localization<br>
+                            • €75-200k annual savings per 50-worker crew
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: Hardware Specifications -->
+            <div class="slide">
+                <h2>Hardware Specifications</h2>
+                <div class="content-grid three-column">
+                    <div class="card">
+                        <h4>SENSORS</h4>
+                        <ul class="bullet-list">
+                            <li>ECG: 250 Hz, ±3 bpm accuracy</li>
+                            <li>PPG: 50 Hz, ±5 bpm HR; ±3% SpO2</li>
+                            <li>Core Temperature: ±0.5°C accuracy</li>
+                            <li>IMU: 3-axis accel/gyro, 100 Hz, 16-bit</li>
+                            <li>UWB: IEEE 802.15.4, 6.5 GHz, ±10-15cm</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>CONNECTIVITY</h4>
+                        <ul class="bullet-list">
+                            <li>Bluetooth 5.0 (primary)</li>
+                            <li>WiFi 6 (802.11ax)</li>
+                            <li>Mesh networking backup</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>BATTERY &amp; FORM FACTOR</h4>
+                        <ul class="bullet-list">
+                            <li>Li-Po 30×27×5mm battery</li>
+                            <li>At least 24 hour continuous operation</li>
+                            <li>2-hour USB-C fast recharge</li>
+                            <li>42×42×12 mm wristband form factor</li>
+                            <li>38-42g weight</li>
+                  
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Safety Scenarios Part 1 -->
+            <div class="slide">
+                <h2>Safety Scenarios (Part 1)</h2>
+                <div class="content-grid two-column">
+                    <div class="scenario-card severity-medium">
+                        <div class="scenario-title">1. MACHINERY PROXIMITY</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> UWB detects &lt;2m<br>
+                            <strong>Alert Type:</strong> Haptic + Visual<br>
+                            <strong>Action:</strong> Worker notification + supervisor alert
+                        </div>
+                    </div>
+                    <div class="scenario-card severity-high">
+                        <div class="scenario-title">2. HEAT STRESS</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> Core temp ≥39.5°C<br>
+                            <strong>Alert Type:</strong> Critical Alert<br>
+                            <strong>Action:</strong> Immediate rest + hydration protocol
+                        </div>
+                    </div>
+                    <div class="scenario-card severity-high">
+                        <div class="scenario-title">3. FALL DETECTION</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> Impact acceleration &gt;6G<br>
+                            <strong>Alert Type:</strong> Emergency Alert<br>
+                            <strong>Action:</strong> Auto-location dispatch to EMS
+                        </div>
+                    </div>
+                    <div class="scenario-card severity-medium">
+                        <div class="scenario-title">4. FATIGUE ACCUMULATION</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> HRV decreases &gt;30%<br>
+                            <strong>Alert Type:</strong> Warning Alert<br>
+                            <strong>Action:</strong> Schedule mandatory break
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: Safety Scenarios Part 2 -->
+            <div class="slide">
+                <h2>Safety Scenarios (Part 2)</h2>
+                <div class="content-grid two-column">
+                    <div class="scenario-card severity-high">
+                        <div class="scenario-title">5. CONFINED SPACE GAS EXPOSURE</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> SpO2 &lt;90% + location data<br>
+                            <strong>Alert Type:</strong> Critical Emergency<br>
+                            <strong>Action:</strong> Immediate evacuation + rescue protocol
+                        </div>
+                    </div>
+                    <div class="scenario-card severity-high">
+                        <div class="scenario-title">6. HIGH-RISE/ELEVATED WORK</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> Fall detected + height &gt;3m<br>
+                            <strong>Alert Type:</strong> Priority Emergency<br>
+                            <strong>Action:</strong> EMS dispatch with exact location
+                        </div>
+                    </div>
+                    <div class="scenario-card severity-medium">
+                        <div class="scenario-title">7. COLD STRESS</div>
+                        <div class="scenario-details">
+                            <strong>Trigger:</strong> Core temp &lt;35°C<br>
+                            <strong>Alert Type:</strong> Warning Alert<br>
+                            <strong>Action:</strong> Warming protocol + medical check
+                        </div>
+                    </div>
+                </div>
+                <div class="banner">INTEGRATED DETECTION = 30% FEWER INCIDENTS</div>
+            </div>
+
+            <!-- Slide 7: Scientific Evidence -->
+            <div class="slide">
+                <h2>Scientific Evidence</h2>
+                <div class="content-grid two-column">
+                    <div class="evidence-box">
+                        <div class="evidence-title">HRV-BASED FATIGUE DETECTION</div>
+                        <div class="evidence-stat">Study: n=66 construction workers</div>
+                        <div class="evidence-stat">Finding: 93.5% classification accuracy</div>
+                        <div>Evidence: RHR &gt;30% baseline = high risk</div>
+                    </div>
+                    <div class="evidence-box">
+                        <div class="evidence-title">HEAT STRESS MONITORING</div>
+                        <div class="evidence-stat">Study: n=45 workers</div>
+                        <div class="evidence-stat">Finding: Core temp ±0.5°C accuracy</div>
+                        <div>Evidence: 76% reduction in heat exhaustion</div>
+                    </div>
+                    <div class="evidence-box">
+                        <div class="evidence-title">FALL DETECTION</div>
+                        <div class="evidence-stat">Study: n=200 workers</div>
+                        <div class="evidence-stat">Finding: 85-95% sensitivity</div>
+                        <div>Evidence: &lt;5-second emergency alerts</div>
+                    </div>
+                    <div class="evidence-box">
+                        <div class="evidence-title">UWB POSITIONING ACCURACY</div>
+                        <div class="evidence-stat">Finding: ±10-15cm LOS accuracy</div>
+                        <div class="evidence-stat">Finding: ±30-50cm NLOS accuracy</div>
+                        <div>Evidence: Validated on multi-story sites</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8: Impact & Outcomes -->
+            <div class="slide">
+                <h2>Impact &amp; Outcomes</h2>
+                <div class="impact-section">
+                    <div class="impact-title">DIRECT IMPACT (Occupational Health)</div>
+                    <ul class="bullet-list">
+                        <li>30% reduction in incidents</li>
+                        <li>&lt;5 second emergency response</li>
+                        <li>93.5% fatigue detection</li>
+                        <li>Prevention-focused (not reactive)</li>
+                    </ul>
+                </div>
+                <div class="impact-section">
+                    <div class="impact-title">ECONOMIC IMPACT</div>
+                    <ul class="bullet-list">
+                        <li>€21.5M+ cumulative savings (EU construction sector)</li>
+                        <li>€75-200k per deployment site annually</li>
+                        <li>Strong ROI by Year 3</li>
+                    </ul>
+                </div>
+                <div class="impact-section">
+                    <div class="impact-title">STRATEGIC IMPACT</div>
+                    <ul class="bullet-list">
+                        <li>European leadership in construction tech</li>
+                        <li>Replicable model for other high-risk sectors</li>
+                        <li>IP portfolio (patents + publications)</li>
+                        <li>Market pathway to €50M+ industry opportunity</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Slide 9: Call to Action & Next Steps -->
+            <div class="slide">
+                <h2>Ready to Transform Construction Worker Safety</h2>
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <div class="step-item">Consortium Formation </div>
+                    <div class="step-item">Proposal Submission </div>
+                    <div class="step-item">Evaluation Phase </div>
+                  
+                </div>
+                <div class="contact-box">
+                    <div style="font-size: 28px; font-weight: 700; margin-bottom: 20px;">Contact Information</div>
+                    <a href="mailto:tech@callisia.health">tech@callisia.health</a>
+                    <a href="http://www.callisia.health" target="_blank">www.callisia.health</a>
+                    <div style="margin-top: 30px; font-size: 20px;">Let's partner for a safer future</div>
+                </div>
+            </div>
+
+            <!-- Slide 10: Closing Slide -->
+            <div class="slide closing-slide">
+                <h1>Questions?</h1>
+                <div class="subtext">Let's build safer construction sites together</div>
+                <div class="contact">
+                    tech@callisia.health<br>
+                    www.callisia.health
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn">← Previous</button>
+            <div class="slide-counter" id="slideCounter">1 / 10</div>
+            <button class="nav-button" id="nextBtn">Next →</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
